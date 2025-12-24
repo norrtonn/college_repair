@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Вход в систему{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <h2><i class="fas fa-sign-in-alt"></i> Вход в систему</h2>
+        <p class="subtitle">Ремонт компьютеров в колледже</p>
+        
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="form-group">
+                <label for="username"><i class="fas fa-user"></i> Имя пользователя</label>
+                <input type="text" id="username" name="username" required 
+                       placeholder="Введите имя пользователя">
+            </div>
+            
+            <div class="form-group">
+                <label for="password"><i class="fas fa-lock"></i> Пароль</label>
+                <input type="password" id="password" name="password" required 
+                       placeholder="Введите пароль">
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block">
+                <i class="fas fa-sign-in-alt"></i> Войти
+            </button>
+        </form>
+        
+        <div class="login-info">
+            <h4><i class="fas fa-key"></i> Тестовые учетные записи:</h4>
+            <div class="account-list">
+                <div class="account-item">
+                    <span class="account-role admin">👑 Администратор</span>
+                    <span class="account-credentials">admin / admin123</span>
+                </div>
+                <div class="account-item">
+                    <span class="account-role technician">🔧 Специалист</span>
+                    <span class="account-credentials">technician1 / tech123</span>
+                </div>
+                <div class="account-item">
+                    <span class="account-role user">👤 Студент</span>
+                    <span class="account-credentials">student1 / student123</span>
+                </div>
+                <div class="account-item">
+                    <span class="account-role user">👤 Преподаватель</span>
+                    <span class="account-credentials">teacher1 / teacher123</span>
+                </div>
+                <div class="account-item">
+                    <span class="account-role user">👤 Студент 2</span>
+                    <span class="account-credentials">student2 / student123</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

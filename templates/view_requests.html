@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Список заявок{% endblock %}
+
+{% block content %}
+<div class="requests-header">
+    <h2><i class="fas fa-list"></i> Список заявок</h2>
+    
+    {% if user.role == 'user' %}
+        <a href="{{ url_for('create_request') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Новая заявка
+        </a>
+    {% endif %}
+</div>
+
+<div class="filters">
+    <label>Фильтр по статусу:</label>
+    <select id="statusFilter" onchange="filterRequests()">
+        <option value="all">Все</option>
+        <option value="pending">Ожидание</option>
+        <option value="in_progress">В работе</option>
+        <option value="completed">Завершено</option>
+    </select>
+</div>
+
+<div class="requests-table-container">
+    <table class="requests-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Компьютер</th>
+                <th>Аудитория</th>
+                <th>Описание</th>
+                <th>Приоритет</th>
+                <th>Статус</th>
+                <th>Дата</th>
+                {% if user.role in ['admin', 'technician'] %}
+                <th>Автор</th>
+                <th>Действия</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for req in requests %}
+            <tr class="request-row status-{{ req.status }}">
+                <td>{{ req.id }}</td>
+                <td>{{ req.computer_number }}</td>
+                <td>{{ req.location }}</td>
+                <td class="problem-description" title="{{ req.problem_description }}">
+                    {{ req.problem_description|truncate(50) }}
+                </td>
+                <td>
+                    <span class="priority-badge priority-{{ req.priority }}">
+                        {% if req.priority == 'high' %}Высокий
+                        {% elif req.priority == 'medium' %}Средний
+                        {% elif req.priority == 'low' %}Низкий
+                        {% else %}{{ req.priority }}{% endif %}
+                    </span>
+                </td>
+                <td>
+                    <span class="status-badge status-{{ req.status }}">
+                        {% if req.status == 'pending' %}Ожидание
+                        {% elif req.status == 'in_progress' %}В работе
+                        {% elif req.status == 'completed' %}Завершено
+                        {% else %}{{ req.status }}{% endif %}
+                    </span>
+                </td>
+                <td>{{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                
+                {% if user.role in ['admin', 'technician'] %}
+                <td>{{ req.author.full_name }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('update_request_status', request_id=req.id) }}" 
+                          class="status-form">
+                        <select name="status" onchange="this.form.submit()" class="status-select">
+                            <option value="pending" {% if req.status == 'pending' %}selected{% endif %}>Ожидание</option>
+                            <option value="in_progress" {% if req.status == 'in_progress' %}selected{% endif %}>В работе</option>
+                            <option value="completed" {% if req.status == 'completed' %}selected{% endif %}>Завершено</option>
+                        </select>
+                    </form>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if not requests %}
+<div class="empty-state">
+    <i class="fas fa-inbox"></i>
+    <h3>Заявок пока нет</h3>
+    {% if user.role == 'user' %}
+        <p>Создайте первую заявку на ремонт</p>
+        <a href="{{ url_for('create_request') }}" class="btn btn-primary">
+            Создать заявку
+        </a>
+    {% else %}
+        <p>Ожидайте новых заявок от пользователей</p>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

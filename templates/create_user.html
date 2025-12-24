@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Создание пользователя{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2><i class="fas fa-user-plus"></i> Создание нового пользователя</h2>
+        <p class="subtitle">Только администратор может создавать новых пользователей</p>
+    </div>
+    
+    <form method="POST" action="{{ url_for('create_user') }}" class="form-card">
+        <div class="form-group">
+            <label for="full_name"><i class="fas fa-id-card"></i> Полное имя</label>
+            <input type="text" id="full_name" name="full_name" required 
+                   placeholder="Например: Сергеев Алексей Викторович">
+            <div class="form-hint">ФИО пользователя, которое будет отображаться в системе</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="username"><i class="fas fa-user"></i> Имя пользователя (логин)</label>
+            <input type="text" id="username" name="username" required 
+                   placeholder="Например: alex_sergeev">
+            <div class="form-hint">Уникальное имя для входа в систему (только латинские буквы и цифры)</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="password"><i class="fas fa-lock"></i> Пароль</label>
+            <input type="password" id="password" name="password" required 
+                   placeholder="Придумайте надежный пароль">
+            <div class="form-hint">Минимум 6 символов. Сообщите пароль пользователю</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="role"><i class="fas fa-user-tag"></i> Роль пользователя</label>
+            <div class="role-options">
+                <div class="role-option">
+                    <input type="radio" id="role_user" name="role" value="user" required>
+                    <label for="role_user" class="role-label">
+                        <div class="role-icon">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div class="role-info">
+                            <strong>Пользователь</strong>
+                            <small>Студент или преподаватель. Может создавать заявки на ремонт.</small>
+                        </div>
+                    </label>
+                </div>
+                
+                <div class="role-option">
+                    <input type="radio" id="role_technician" name="role" value="technician" required>
+                    <label for="role_technician" class="role-label">
+                        <div class="role-icon">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <div class="role-info">
+                            <strong>Специалист по ремонту</strong>
+                            <small>Может просматривать все заявки и менять их статусы.</small>
+                        </div>
+                    </label>
+                </div>
+                
+                <div class="role-option">
+                    <input type="radio" id="role_admin" name="role" value="admin" required>
+                    <label for="role_admin" class="role-label">
+                        <div class="role-icon">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <div class="role-info">
+                            <strong>Администратор</strong>
+                            <small>Полный доступ ко всем функциям системы.</small>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-buttons">
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-user-plus"></i> Создать пользователя
+            </button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Отмена
+            </a>
+        </div>
+    </form>
+    
+    <div class="user-types-info">
+        <h3><i class="fas fa-info-circle"></i> Типы пользователей:</h3>
+        <div class="user-types-grid">
+            <div class="user-type-card">
+                <div class="user-type-header user">
+                    <i class="fas fa-user-graduate"></i>
+                    <h4>Пользователь</h4>
+                </div>
+                <div class="user-type-body">
+                    <p><strong>Может:</strong></p>
+                    <ul>
+                        <li>Создавать заявки на ремонт</li>
+                        <li>Просматривать свои заявки</li>
+                        <li>Отслеживать статус заявок</li>
+                    </ul>
+                    <p><strong>Не может:</strong></p>
+                    <ul>
+                        <li>Видеть заявки других</li>
+                        <li>Менять статусы заявок</li>
+                        <li>Создавать пользователей</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="user-type-card">
+                <div class="user-type-header technician">
+                    <i class="fas fa-tools"></i>
+                    <h4>Специалист</h4>
+                </div>
+                <div class="user-type-body">
+                    <p><strong>Может:</strong></p>
+                    <ul>
+                        <li>Просматривать все заявки</li>
+                        <li>Менять статусы заявок</li>
+                        <li>Использовать панель "Мои задачи"</li>
+                    </ul>
+                    <p><strong>Не может:</strong></p>
+                    <ul>
+                        <li>Создавать пользователей</li>
+                        <li>Удалять заявки</li>
+                        <li>Менять настройки системы</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="user-type-card">
+                <div class="user-type-header admin">
+                    <i class="fas fa-crown"></i>
+                    <h4>Администратор</h4>
+                </div>
+                <div class="user-type-body">
+                    <p><strong>Может:</strong></p>
+                    <ul>
+                        <li>Создавать/удалять пользователей</li>
+                        <li>Просматривать все заявки</li>
+                        <li>Менять статусы заявок</li>
+                        <li>Управлять системой</li>
+                    </ul>
+                    <p><strong>Полный доступ:</strong></p>
+                    <ul>
+                        <li>Ко всем функциям системы</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

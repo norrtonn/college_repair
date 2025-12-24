@@ -1,0 +1,400 @@
+{% extends "base.html" %}
+
+{% block title %}Главная панель{% endblock %}
+
+{% block content %}
+<!-- Заголовок дашборда -->
+<div class="dashboard-header">
+    <div class="welcome-section">
+        <h1><i class="fas fa-tachometer-alt"></i> Добро пожаловать, {{ user.full_name }}!</h1>
+        <p class="welcome-message">
+            {% if user.role == 'admin' %}
+                Вы вошли как администратор системы. У вас есть полный доступ ко всем функциям.
+            {% elif user.role == 'technician' %}
+                Вы вошли как специалист по ремонту. Вы можете обрабатывать заявки на ремонт компьютеров.
+            {% else %}
+                Вы вошли как пользователь. Вы можете создавать заявки на ремонт и отслеживать их статус.
+            {% endif %}
+        </p>
+        <div class="current-time">
+            <i class="fas fa-clock"></i>
+            <span id="currentDateTime">{{ now.strftime('%d.%m.%Y %H:%M') if now else '' }}</span>
+        </div>
+    </div>
+    
+    {% if user.role in ['admin', 'technician'] %}
+    <div class="system-status">
+        <div class="status-indicator active">
+            <i class="fas fa-server"></i>
+            <span>Система работает</span>
+        </div>
+        <div class="status-indicator">
+            <i class="fas fa-database"></i>
+            <span>База данных подключена</span>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Быстрые действия -->
+<div class="quick-actions-section">
+    <h2><i class="fas fa-bolt"></i> Быстрые действия</h2>
+    <div class="quick-actions-grid">
+        {% if user.role == 'user' %}
+        <a href="{{ url_for('create_request') }}" class="quick-action-card primary">
+            <div class="action-icon">
+                <i class="fas fa-plus-circle"></i>
+            </div>
+            <div class="action-content">
+                <h3>Создать заявку</h3>
+                <p>Подать новую заявку на ремонт компьютера</p>
+            </div>
+            <div class="action-arrow">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </a>
+        {% endif %}
+        
+        <a href="{{ url_for('view_requests') }}" class="quick-action-card secondary">
+            <div class="action-icon">
+                <i class="fas fa-eye"></i>
+            </div>
+            <div class="action-content">
+                <h3>Просмотр заявок</h3>
+                <p>
+                    {% if user.role in ['admin', 'technician'] %}
+                    Просмотреть все заявки системы
+                    {% else %}
+                    Посмотреть мои заявки
+                    {% endif %}
+                </p>
+            </div>
+            <div class="action-arrow">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </a>
+        
+        {% if user.role == 'technician' %}
+        <a href="{{ url_for('technician_tasks') }}" class="quick-action-card success">
+            <div class="action-icon">
+                <i class="fas fa-tasks"></i>
+            </div>
+            <div class="action-content">
+                <h3>Мои задачи</h3>
+                <p>Заявки, требующие внимания специалиста</p>
+            </div>
+            <div class="action-arrow">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </a>
+        {% endif %}
+        
+        {% if user.role == 'admin' %}
+        <a href="{{ url_for('create_user') }}" class="quick-action-card warning">
+            <div class="action-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <div class="action-content">
+                <h3>Создать пользователя</h3>
+                <p>Добавить нового пользователя или специалиста</p>
+            </div>
+            <div class="action-arrow">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Статистика (для админа и специалиста) -->
+{% if user.role in ['admin', 'technician'] %}
+<div class="stats-section">
+    <h2><i class="fas fa-chart-bar"></i> Статистика системы</h2>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">
+                <h3>Всего заявок</h3>
+                <i class="fas fa-list"></i>
+            </div>
+            <div class="stat-value">{{ stats.total }}</div>
+            <div class="stat-trend">
+                <i class="fas fa-chart-line"></i>
+                <span>Все заявки в системе</span>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-header">
+                <h3>Ожидают</h3>
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-value">{{ stats.pending }}</div>
+            <div class="stat-trend">
+                {% if stats.pending > 0 %}
+                <i class="fas fa-exclamation-circle" style="color: #f8961e;"></i>
+                <span style="color: #f8961e;">Требуют внимания</span>
+                {% else %}
+                <i class="fas fa-check-circle" style="color: #28a745;"></i>
+                <span style="color: #28a745;">Нет ожидающих</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-header">
+                <h3>В работе</h3>
+                <i class="fas fa-tools"></i>
+            </div>
+            <div class="stat-value">{{ stats.in_progress }}</div>
+            <div class="stat-trend">
+                <i class="fas fa-user-cog"></i>
+                <span>Обрабатываются специалистами</span>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-header">
+                <h3>Завершено</h3>
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-value">{{ stats.completed }}</div>
+            <div class="stat-trend">
+                <i class="fas fa-trophy"></i>
+                <span>Успешно выполнено</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Инструкции по ролям -->
+<div class="instructions-section">
+    <h2><i class="fas fa-info-circle"></i> Инструкции</h2>
+    
+    {% if user.role == 'user' %}
+    <div class="role-instructions">
+        <div class="instruction-card">
+            <h3><i class="fas fa-user-graduate"></i> Для пользователя</h3>
+            <div class="instruction-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Создание заявки</h4>
+                        <p>Нажмите "Создать заявку", укажите номер компьютера, аудиторию и описание проблемы.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Отслеживание статуса</h4>
+                        <p>В разделе "Заявки" вы можете видеть статус ваших заявок: Ожидание, В работе, Завершено.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Обратная связь</h4>
+                        <p>После завершения ремонта проверьте компьютер. Если проблема не решена, создайте новую заявку.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if user.role == 'technician' %}
+    <div class="role-instructions">
+        <div class="instruction-card">
+            <h3><i class="fas fa-tools"></i> Для специалиста</h3>
+            <div class="instruction-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Проверка заявок</h4>
+                        <p>В разделе "Мои задачи" или "Заявки" просмотрите новые заявки на ремонт.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Взятие в работу</h4>
+                        <p>Для начала работы с заявкой измените её статус с "Ожидание" на "В работе".</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Завершение работы</h4>
+                        <p>После устранения проблемы измените статус заявки на "Завершено".</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if user.role == 'admin' %}
+    <div class="role-instructions">
+        <div class="instruction-card">
+            <h3><i class="fas fa-crown"></i> Для администратора</h3>
+            <div class="instruction-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Управление пользователями</h4>
+                        <p>Создавайте новых пользователей, специалистов и администраторов через соответствующий раздел.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Мониторинг заявок</h4>
+                        <p>Отслеживайте все заявки в системе, при необходимости изменяйте их статусы.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Статистика и отчеты</h4>
+                        <p>Анализируйте статистику работы системы для оптимизации процессов ремонта.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Последние заявки (если есть) -->
+{% if user.role in ['admin', 'technician'] and recent_requests %}
+<div class="recent-requests">
+    <h2><i class="fas fa-history"></i> Последние заявки</h2>
+    <div class="requests-table-container">
+        <table class="requests-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Компьютер</th>
+                    <th>Аудитория</th>
+                    <th>Проблема</th>
+                    <th>Статус</th>
+                    <th>Дата</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in recent_requests[:5] %}
+                <tr class="status-{{ req.status }}">
+                    <td>#{{ req.id }}</td>
+                    <td>{{ req.computer_number }}</td>
+                    <td>{{ req.location }}</td>
+                    <td>{{ req.problem_description[:50] }}...</td>
+                    <td>
+                        <span class="status-badge status-{{ req.status }}">
+                            {% if req.status == 'pending' %}Ожидание
+                            {% elif req.status == 'in_progress' %}В работе
+                            {% elif req.status == 'completed' %}Завершено
+                            {% else %}{{ req.status }}{% endif %}
+                        </span>
+                    </td>
+                    <td>{{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="view-all-link">
+        <a href="{{ url_for('view_requests') }}">Посмотреть все заявки →</a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Административные функции (только для админа) -->
+{% if user.role == 'admin' %}
+<div class="admin-functions">
+    <h2><i class="fas fa-user-shield"></i> Административные функции</h2>
+    <div class="admin-cards">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <i class="fas fa-users"></i>
+                <h3>Управление пользователями</h3>
+            </div>
+            <div class="admin-card-body">
+                <p>Создавайте, редактируйте и управляйте учетными записями пользователей системы.</p>
+                <ul>
+                    <li>Добавление новых пользователей</li>
+                    <li>Создание специалистов по ремонту</li>
+                    <li>Назначение прав доступа</li>
+                </ul>
+            </div>
+            <div class="admin-card-footer">
+                <a href="{{ url_for('create_user') }}" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> Создать пользователя
+                </a>
+            </div>
+        </div>
+        
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <i class="fas fa-chart-pie"></i>
+                <h3>Статистика и отчеты</h3>
+            </div>
+            <div class="admin-card-body">
+                <p>Анализ работы системы и генерация отчетов для руководства.</p>
+                <ul>
+                    <li>Статистика по заявкам</li>
+                    <li>Анализ времени ремонта</li>
+                    <li>Отчеты по специалистам</li>
+                </ul>
+            </div>
+            <div class="admin-card-footer">
+                <button class="btn btn-secondary" onclick="alert('Функция в разработке')">
+                    <i class="fas fa-chart-bar"></i> Смотреть отчеты
+                </button>
+            </div>
+        </div>
+        
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <i class="fas fa-cog"></i>
+                <h3>Настройки системы</h3>
+            </div>
+            <div class="admin-card-body">
+                <p>Конфигурация параметров системы и управление базой данных.</p>
+                <ul>
+                    <li>Настройка приоритетов</li>
+                    <li>Управление категориями</li>
+                    <li>Резервное копирование</li>
+                </ul>
+            </div>
+            <div class="admin-card-footer">
+                <button class="btn btn-secondary" onclick="alert('Функция в разработке')">
+                    <i class="fas fa-sliders-h"></i> Настройки
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Скрипт для обновления времени -->
+<script>
+    function updateDateTime() {
+        const now = new Date();
+        const options = {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        };
+        const dateTimeStr = now.toLocaleDateString('ru-RU', options);
+        document.getElementById('currentDateTime').textContent = dateTimeStr;
+    }
+    
+    // Обновлять время каждую секунду
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
+</script>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Создание заявки{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2><i class="fas fa-tools"></i> Новая заявка на ремонт</h2>
+    
+    <form method="POST" action="{{ url_for('create_request') }}" class="form-card">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="computer_number"><i class="fas fa-desktop"></i> Номер компьютера</label>
+                <input type="text" id="computer_number" name="computer_number" required 
+                       placeholder="Например: PC-12, LAPTOP-3">
+            </div>
+            
+            <div class="form-group">
+                <label for="location"><i class="fas fa-map-marker-alt"></i> Местоположение</label>
+                <input type="text" id="location" name="location" required 
+                       placeholder="Например: Аудитория 305, Лаборатория 2">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="priority"><i class="fas fa-exclamation-circle"></i> Приоритет</label>
+            <select id="priority" name="priority">
+                <option value="low">Низкий</option>
+                <option value="medium" selected>Средний</option>
+                <option value="high">Высокий</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="problem_description"><i class="fas fa-file-alt"></i> Описание проблемы</label>
+            <textarea id="problem_description" name="problem_description" rows="5" required 
+                      placeholder="Подробно опишите проблему..."></textarea>
+        </div>
+        
+        <div class="form-buttons">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i> Отправить заявку
+            </button>
+            <a href="{{ url_for('view_requests') }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Отмена
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Система ремонта компьютеров{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💻</text></svg>">
+</head>
+<body>
+    <!-- Навигация -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('dashboard') }}" class="logo">
+                <i class="fas fa-laptop-medical"></i> Ремонт ПК
+                <span class="logo-sub">Колледж</span>
+            </a>
+            
+            <div class="nav-links">
+                {% if session.user_id %}
+                    <!-- Информация о пользователе -->
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            {% if session.role == 'admin' %}
+                                <i class="fas fa-crown"></i>
+                            {% elif session.role == 'technician' %}
+                                <i class="fas fa-tools"></i>
+                            {% else %}
+                                <i class="fas fa-user"></i>
+                            {% endif %}
+                        </div>
+                        <div class="user-details">
+                            <span class="user-name">{{ session.full_name }}</span>
+                            <span class="user-role {{ session.role }}">
+                                {% if session.role == 'admin' %}
+                                    Администратор
+                                {% elif session.role == 'technician' %}
+                                    Специалист
+                                {% else %}
+                                    Пользователь
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Основные ссылки -->
+                    <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                        <i class="fas fa-home"></i> Главная
+                    </a>
+                    
+                    <a href="{{ url_for('view_requests') }}" class="nav-link {% if request.endpoint == 'view_requests' %}active{% endif %}">
+                        <i class="fas fa-list"></i> Заявки
+                        {% if session.role in ['admin', 'technician'] %}
+                            <span class="nav-badge" id="pending-count"></span>
+                        {% endif %}
+                    </a>
+                    
+                    <!-- Пользователь: создание заявки -->
+                    {% if session.role == 'user' %}
+                    <a href="{{ url_for('create_request') }}" class="nav-link {% if request.endpoint == 'create_request' %}active{% endif %}">
+                        <i class="fas fa-plus-circle"></i> Создать заявку
+                    </a>
+                    {% endif %}
+                    
+                    <!-- Специалист: мои задачи -->
+                    {% if session.role == 'technician' %}
+                    <a href="{{ url_for('technician_tasks') }}" class="nav-link {% if request.endpoint == 'technician_tasks' %}active{% endif %}">
+                        <i class="fas fa-tasks"></i> Мои задачи
+                    </a>
+                    {% endif %}
+                    
+                    <!-- Администратор: управление пользователями -->
+                    {% if session.role == 'admin' %}
+                    <a href="{{ url_for('create_user') }}" class="nav-link {% if request.endpoint == 'create_user' %}active{% endif %}">
+                        <i class="fas fa-user-plus"></i> Создать пользователя
+                    </a>
+                    {% endif %}
+                    
+                    <!-- Выход -->
+                    <a href="{{ url_for('logout') }}" class="nav-link logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </a>
+                {% endif %}
+            </div>
+            
+            <!-- Мобильное меню -->
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Мобильное меню (скрытое) -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <h3>Меню</h3>
+            <button class="close-mobile-menu" id="closeMobileMenu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="mobile-menu-links">
+            {% if session.user_id %}
+                <div class="mobile-user-info">
+                    <div class="mobile-user-avatar">
+                        {% if session.role == 'admin' %}
+                            <i class="fas fa-crown"></i>
+                        {% elif session.role == 'technician' %}
+                            <i class="fas fa-tools"></i>
+                        {% else %}
+                            <i class="fas fa-user"></i>
+                        {% endif %}
+                    </div>
+                    <div class="mobile-user-details">
+                        <span class="mobile-user-name">{{ session.full_name }}</span>
+                        <span class="mobile-user-role {{ session.role }}">
+                            {% if session.role == 'admin' %}
+                                Администратор
+                            {% elif session.role == 'technician' %}
+                                Специалист
+                            {% else %}
+                                Пользователь
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <a href="{{ url_for('dashboard') }}" class="mobile-nav-link">
+                    <i class="fas fa-home"></i> Главная
+                </a>
+                
+                <a href="{{ url_for('view_requests') }}" class="mobile-nav-link">
+                    <i class="fas fa-list"></i> Заявки
+                </a>
+                
+                {% if session.role == 'user' %}
+                <a href="{{ url_for('create_request') }}" class="mobile-nav-link">
+                    <i class="fas fa-plus-circle"></i> Создать заявку
+                </a>
+                {% endif %}
+                
+                {% if session.role == 'technician' %}
+                <a href="{{ url_for('technician_tasks') }}" class="mobile-nav-link">
+                    <i class="fas fa-tasks"></i> Мои задачи
+                </a>
+                {% endif %}
+                
+                {% if session.role == 'admin' %}
+                <a href="{{ url_for('create_user') }}" class="mobile-nav-link">
+                    <i class="fas fa-user-plus"></i> Создать пользователя
+                </a>
+                {% endif %}
+                
+                <a href="{{ url_for('logout') }}" class="mobile-nav-link logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Выйти
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="container">
+        <!-- Уведомления -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category == 'user_created' %}
+                    <div class="user-created-alert">
+                        <i class="fas fa-check-circle"></i>
+                        <div class="alert-content">
+                            <h4>{{ message.title }}</h4>
+                            <p>{{ message.message }}</p>
+                            <div class="user-credentials">
+                                <table>
+                                    <tr>
+                                        <td>Имя пользователя:</td>
+                                        <td>{{ message.username }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Пароль:</td>
+                                        <td>{{ message.password }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Роль:</td>
+                                        <td>{{ message.role }}</td>
+                                    </tr>
+                                </table>
+                                <p class="credentials-note">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Сохраните эти данные! Они понадобятся для входа в систему.
+                                </p>
+                            </div>
+                        </div>
+                        <button class="close-alert" onclick="this.parentElement.remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-{{ category }}">
+                        <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% elif category == 'info' %}info-circle{% else %}bell{% endif %}"></i>
+                        <span>{{ message }}</span>
+                        <button class="close-alert" onclick="this.parentElement.remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Блок контента -->
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Футер -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-logo">
+                <i class="fas fa-laptop-medical"></i>
+                <span>Система ремонта компьютеров</span>
+            </div>
+            <div class="footer-info">
+                <p>© 2024 Колледж. Все права защищены.</p>
+                <p class="footer-version">Версия 1.0.0</p>
+            </div>
+            <div class="footer-links">
+                <a href="#" class="footer-link"><i class="fas fa-question-circle"></i> Помощь</a>
+                <a href="#" class="footer-link"><i class="fas fa-envelope"></i> Контакты</a>
+                <a href="#" class="footer-link"><i class="fas fa-shield-alt"></i> Безопасность</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            // Мобильное меню
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const closeMobileMenuBtn = document.getElementById('closeMobileMenu');
+            const mobileMenu = document.getElementById('mobileMenu');
+            
+            if (mobileMenuBtn && mobileMenu) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    mobileMenu.classList.add('show');
+                });
+                
+                closeMobileMenuBtn.addEventListener('click', function() {
+                    mobileMenu.classList.remove('show');
+                });
+                
+                // Закрытие меню при клике вне его
+                document.addEventListener('click', function(event) {
+                    if (!mobileMenu.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
+                        mobileMenu.classList.remove('show');
+                    }
+                });
+            }
+            
+            // Обновление счетчика ожидающих заявок
+            function updatePendingCount() {
+                // Проверяем роль пользователя на сервере
+                var userRole = "{{ session.role if session.user_id else '' }}";
+                if (userRole === 'admin' || userRole === 'technician') {
+                    fetch('/api/requests')
+                        .then(function(response) {
+                            return response.json();
+                        })
+                        .then(function(data) {
+                            const pendingCount = data.filter(function(req) {
+                                return req.status === 'pending';
+                            }).length;
+                            const badge = document.getElementById('pending-count');
+                            if (badge) {
+                                if (pendingCount > 0) {
+                                    badge.textContent = pendingCount;
+                                    badge.style.display = 'inline-flex';
+                                } else {
+                                    badge.style.display = 'none';
+                                }
+                            }
+                        })
+                        .catch(function(error) {
+                            console.error('Ошибка:', error);
+                        });
+                }
+            }
+            
+            // Первоначальное обновление и периодическое обновление
+            updatePendingCount();
+            setInterval(updatePendingCount, 30000); // Обновлять каждые 30 секунд
+            
+            // Подсветка активной ссылки
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(function(link) {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+            
+            // Автоматическое скрытие алертов через 5 секунд
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('.alert:not(.user-created-alert)');
+                alerts.forEach(function(alert) {
+                    alert.style.opacity = '0';
+                    setTimeout(function() {
+                        alert.remove();
+                    }, 300);
+                });
+            }, 5000);
+        });
+        
+        // Функция для подтверждения действий
+        function confirmAction(message) {
+            return confirm(message || 'Вы уверены?');
+        }
+    </script>
+</body>
+</html>

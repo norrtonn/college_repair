@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Мои задачи{% endblock %}
+
+{% block content %}
+<div class="technician-header">
+    <h2><i class="fas fa-tools"></i> Панель специалиста</h2>
+    <p>Здесь отображаются заявки, требующие вашего внимания</p>
+</div>
+
+<div class="tasks-container">
+    <div class="tasks-section">
+        <h3><i class="fas fa-exclamation-circle"></i> Заявки в работе</h3>
+        {% if in_progress_requests %}
+        <div class="tasks-grid">
+            {% for req in in_progress_requests %}
+            <div class="task-card status-in_progress">
+                <div class="task-header">
+                    <h4>Компьютер: {{ req.computer_number }}</h4>
+                    <span class="task-id">#{{ req.id }}</span>
+                </div>
+                <div class="task-body">
+                    <p><strong>Аудитория:</strong> {{ req.location }}</p>
+                    <p><strong>Приоритет:</strong> 
+                        <span class="priority-badge priority-{{ req.priority }}">
+                            {{ req.priority }}
+                        </span>
+                    </p>
+                    <p><strong>Описание проблемы:</strong></p>
+                    <p class="problem-text">{{ req.problem_description }}</p>
+                    <p><strong>Автор:</strong> {{ req.author.full_name }}</p>
+                    <p><strong>Создано:</strong> {{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+                </div>
+                <div class="task-actions">
+                    <form method="POST" action="{{ url_for('update_request_status', request_id=req.id) }}">
+                        <select name="status" onchange="this.form.submit()" class="status-select">
+                            <option value="in_progress" selected>В работе</option>
+                            <option value="completed">Завершено</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-tasks">
+            <i class="fas fa-check-circle"></i>
+            <p>Нет заявок в работе</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="tasks-section">
+        <h3><i class="fas fa-clock"></i> Ожидающие заявки</h3>
+        {% if pending_requests %}
+        <div class="tasks-grid">
+            {% for req in pending_requests %}
+            <div class="task-card status-pending">
+                <div class="task-header">
+                    <h4>Компьютер: {{ req.computer_number }}</h4>
+                    <span class="task-id">#{{ req.id }}</span>
+                </div>
+                <div class="task-body">
+                    <p><strong>Аудитория:</strong> {{ req.location }}</p>
+                    <p><strong>Приоритет:</strong> 
+                        <span class="priority-badge priority-{{ req.priority }}">
+                            {{ req.priority }}
+                        </span>
+                    </p>
+                    <p><strong>Описание проблемы:</strong></p>
+                    <p class="problem-text">{{ req.problem_description|truncate(150) }}</p>
+                    <p><strong>Автор:</strong> {{ req.author.full_name }}</p>
+                </div>
+                <div class="task-actions">
+                    <form method="POST" action="{{ url_for('update_request_status', request_id=req.id) }}">
+                        <select name="status" onchange="this.form.submit()" class="status-select">
+                            <option value="pending" selected>Ожидание</option>
+                            <option value="in_progress">Взять в работу</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-tasks">
+            <i class="fas fa-check-circle"></i>
+            <p>Нет ожидающих заявок</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="technician-stats">
+    <a href="{{ url_for('view_requests') }}" class="btn btn-primary">
+        <i class="fas fa-list"></i> Все заявки
+    </a>
+    <span class="stat-info">
+        Всего заявок: {{ in_progress_requests|length + pending_requests|length }}
+    </span>
+</div>
+{% endblock %}
